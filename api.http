@@ -1,0 +1,138 @@
+### Skin Analyzer API Test File
+### Use with REST Client extension (VS Code, IntelliJ, etc.)
+
+@baseUrl = http://localhost:8000
+
+### Health Check
+GET {{baseUrl}}/health
+
+### Service Info
+GET {{baseUrl}}/info
+
+### Full Analysis (non-verbose)
+POST {{baseUrl}}/analyze
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="1.png"
+Content-Type: image/png
+
+< ./samples/1.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Full Analysis (verbose)
+POST {{baseUrl}}/analyze
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="1.png"
+Content-Type: image/png
+
+< ./samples/1.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="verbose"
+
+true
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Full Analysis with second sample image
+POST {{baseUrl}}/analyze
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="2.png"
+Content-Type: image/png
+
+< ./samples/2.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="verbose"
+
+true
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Quick Check
+POST {{baseUrl}}/check
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="1.png"
+Content-Type: image/png
+
+< ./samples/1.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Region Analysis - Left Cheek
+POST {{baseUrl}}/analyze/region
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="1.png"
+Content-Type: image/png
+
+< ./samples/1.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="region"
+
+left_cheek
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Region Analysis - Right Cheek
+POST {{baseUrl}}/analyze/region
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="1.png"
+Content-Type: image/png
+
+< ./samples/1.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="region"
+
+right_cheek
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Region Analysis - Forehead
+POST {{baseUrl}}/analyze/region
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="1.png"
+Content-Type: image/png
+
+< ./samples/1.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="region"
+
+forehead
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Region Analysis - Nose
+POST {{baseUrl}}/analyze/region
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="1.png"
+Content-Type: image/png
+
+< ./samples/1.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="region"
+
+nose
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Region Analysis - Chin
+POST {{baseUrl}}/analyze/region
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="1.png"
+Content-Type: image/png
+
+< ./samples/1.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="region"
+
+chin
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+

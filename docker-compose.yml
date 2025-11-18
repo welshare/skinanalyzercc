@@ -1,7 +1,6 @@
 services:
   skin-analyzer:
-    image: ghcr.io/elmariachi111/skin-analyzer:latest
-    platform: linux/amd64  # Ensure compatibility with remote Linux servers
+    image: ghcr.io/elmariachi111/skin-analyzer:49f287743678fd74f2eb476bdf6583a8262639867307c8ed63fa88d6f5ebd7b7
+    platform: linux/amd64 
     expose:
       - 8000
-    
