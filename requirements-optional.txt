@@ -1,0 +1,9 @@
+# Optional dependencies for advanced features
+# These are only needed if you want to use BiSeNet deep parsing model
+# CPU-only versions are much smaller (~500MB total vs ~7GB for CUDA versions)
+
+# PyTorch CPU-only (much smaller than CUDA versions)
+--index-url https://download.pytorch.org/whl/cpu
+torch>=2.0.0,<2.1.0
+torchvision>=0.15.0,<0.16.0
+

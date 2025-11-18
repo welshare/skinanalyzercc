@@ -6,28 +6,36 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Install build dependencies
+# Install build dependencies and clean in same layer to reduce size
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    && rm -rf /var/lib/apt/lists/*
+    && pip install --no-cache-dir --upgrade pip \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/* \
+    && rm -rf /var/tmp/*
 
 # Install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir --user -r requirements.txt \
+    && rm -rf /tmp/* \
+    && rm -rf /var/tmp/*
 
 # Runtime stage
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install runtime dependencies for OpenCV
+# Install runtime dependencies for OpenCV and clean in same layer
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/* \
+    && rm -rf /var/tmp/* \
+    && apt-get clean
 
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser
@@ -41,13 +49,20 @@ COPY src/ ./src/
 COPY scripts/ ./scripts/
 COPY models/ ./models/
 
-# Download models during build (optional - can also lazy-load)
-RUN python scripts/download_models.py
+# Download models during build and clean up
+RUN python scripts/download_models.py \
+    && rm -rf /tmp/* \
+    && rm -rf /var/tmp/* \
+    && find /home/appuser/.local -type d -name __pycache__ -exec rm -r {} + 2>/dev/null || true \
+    && find /home/appuser/.local -name "*.pyc" -delete \
+    && find /home/appuser/.local -name "*.pyo" -delete
 
 # Set ownership and switch to appuser
 RUN chown -R appuser:appuser /app
 USER appuser
-ENV PATH=/home/appuser/.local/bin:$PATH
+ENV PATH=/home/appuser/.local/bin:$PATH \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 # Expose port for API
 EXPOSE 8000

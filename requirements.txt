@@ -4,14 +4,8 @@ opencv-python-headless>=4.8.0
 scikit-image>=0.21.0
 Pillow>=10.0.0
 
-# Deep learning
-torch>=2.0.0
-torchvision>=0.15.0
+# Deep learning (ONNX runtime only - lightweight)
 onnxruntime>=1.16.0
-
-# Transformers for pre-trained models
-transformers>=4.35.0
-huggingface-hub>=0.19.0
 
 # API framework (optional, for serving)
 fastapi>=0.104.0
@@ -21,3 +15,7 @@ python-multipart>=0.0.6
 # Utilities
 requests>=2.31.0
 tqdm>=4.66.0
+
+# Optional: PyTorch for BiSeNet model (CPU-only, much smaller)
+# Install separately if needed: pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+# Or use: pip install -r requirements-optional.txt
