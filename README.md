@@ -38,10 +38,19 @@ python scripts/download_models.py
 
 ```bash
 # Build image
-docker build -t skin-analyzer .
+docker build --platform linux/amd64 -t ghcr.io/elmariachi111/skin-analyzer:latest .
+
+#tag
+docker tag ghcr.io/elmariachi111/skin-analyzer:latest ghcr.io/elmariachi111/skin-analyzer:v1.2.0
+
+# push
+docker push ghcr.io/elmariachi111/skin-analyzer:latest
+docker push ghcr.io/elmariachi111/skin-analyzer:v1.2.0
+
 
 # Run container
 docker run -p 8000:8000 skin-analyzer
+
 ```
 
 ## Usage
