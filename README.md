@@ -51,6 +51,8 @@ docker push ghcr.io/elmariachi111/skin-analyzer:v1.2.0
 # Run container
 docker run -p 8000:8000 skin-analyzer
 
+# View logs (all logs include timestamps)
+docker logs -f <container_id>
 ```
 
 ## Usage
@@ -85,8 +87,15 @@ python -m src.cli region image.jpg --region left_cheek
 
 Start the server:
 ```bash
+python -m src.run
+```
+
+Or using uvicorn directly (with logging configured):
+```bash
 uvicorn src.api:app --host 0.0.0.0 --port 8000
 ```
+
+**Note**: The `src.run` module ensures proper logging configuration with timestamps. All application logs are output to stdout with the format: `YYYY-MM-DD HH:MM:SS - logger_name - LEVEL - message`
 
 Endpoints:
 
@@ -195,7 +204,8 @@ nilcc-demo/
 │   │   ├── pigmentation.py  # Spot detection
 │   │   └── tone.py          # Color analysis
 │   ├── api.py               # REST API
-│   └── cli.py               # CLI interface
+│   ├── cli.py               # CLI interface
+│   └── run.py               # Application startup script (configures logging)
 ├── scripts/
 │   └── download_models.py
 ├── models/                   # Downloaded models

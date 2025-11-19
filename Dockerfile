@@ -67,8 +67,8 @@ ENV PATH=/home/appuser/.local/bin:$PATH \
 # Expose port for API
 EXPOSE 8000
 
-# Default command - run API server
-CMD ["python", "-m", "uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "8000"]
+# Default command - run API server with proper logging configuration
+CMD ["python", "-m", "src.run"]
 
 # Alternative: Run CLI
 # CMD ["python", "-m", "src.cli"]

@@ -10,12 +10,15 @@ from pathlib import Path
 from typing import Optional, Union
 import json
 from datetime import datetime
+import logging
 
 from .detector import FaceDetector
 from .parser import FaceParser
 from .texture import TextureAnalyzer
 from .pigmentation import PigmentationAnalyzer
 from .tone import ToneAnalyzer
+
+logger = logging.getLogger(__name__)
 
 
 class SkinAnalyzer:
@@ -40,15 +43,32 @@ class SkinAnalyzer:
             use_deep_parsing: Use BiSeNet for skin segmentation.
             parsing_model_path: Path to BiSeNet model weights.
         """
+        logger.info("Initializing SkinAnalyzer components...")
         # Initialize all components
+        logger.debug(f"Creating FaceDetector with confidence threshold: {face_confidence}")
         self.face_detector = FaceDetector(confidence_threshold=face_confidence)
+        logger.debug("FaceDetector created successfully")
+        
+        logger.debug(f"Creating FaceParser (use_deep_model={use_deep_parsing})")
         self.face_parser = FaceParser(
             use_deep_model=use_deep_parsing,
             model_path=parsing_model_path
         )
+        logger.debug("FaceParser created successfully")
+        
+        logger.debug("Creating TextureAnalyzer...")
         self.texture_analyzer = TextureAnalyzer()
+        logger.debug("TextureAnalyzer created successfully")
+        
+        logger.debug("Creating PigmentationAnalyzer...")
         self.pigmentation_analyzer = PigmentationAnalyzer()
+        logger.debug("PigmentationAnalyzer created successfully")
+        
+        logger.debug("Creating ToneAnalyzer...")
         self.tone_analyzer = ToneAnalyzer()
+        logger.debug("ToneAnalyzer created successfully")
+        
+        logger.info("All SkinAnalyzer components initialized successfully")
 
     def analyze(
         self,

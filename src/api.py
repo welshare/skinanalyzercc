@@ -10,6 +10,8 @@ Endpoints:
 
 import tempfile
 import os
+import logging
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -20,6 +22,61 @@ import cv2
 import numpy as np
 
 from .skin_analyzer import SkinAnalyzer
+
+# Configure logging with timestamps - must be done before any other imports that use logging
+LOGGING_CONFIG = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+        "uvicorn": {
+            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+    },
+    "handlers": {
+        "default": {
+            "formatter": "default",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
+        },
+    },
+    "root": {
+        "level": "INFO",
+        "handlers": ["default"],
+    },
+    "loggers": {
+        "uvicorn": {
+            "handlers": ["default"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "uvicorn.error": {
+            "handlers": ["default"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "uvicorn.access": {
+            "handlers": ["default"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "src": {
+            "handlers": ["default"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}
+
+# Apply logging configuration
+import logging.config
+logging.config.dictConfig(LOGGING_CONFIG)
+
+logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -45,13 +102,50 @@ def get_analyzer() -> SkinAnalyzer:
     """Get or create the analyzer instance."""
     global analyzer
     if analyzer is None:
-        analyzer = SkinAnalyzer()
+        logger.info("Creating new SkinAnalyzer instance...")
+        try:
+            analyzer = SkinAnalyzer()
+            logger.info("SkinAnalyzer instance created successfully")
+        except Exception as e:
+            logger.error(f"Failed to create SkinAnalyzer instance: {e}", exc_info=True)
+            raise
+    else:
+        logger.debug("Reusing existing SkinAnalyzer instance")
     return analyzer
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Log application startup."""
+    logger.info("=" * 60)
+    logger.info("Starting Skin Analyzer API")
+    logger.info("Version: 0.1.0")
+    logger.info("Initializing application components...")
+    
+    # Pre-initialize analyzer to log any initialization issues
+    try:
+        analyzer_instance = get_analyzer()
+        logger.info("Skin Analyzer initialized successfully")
+        logger.info("Application startup complete")
+        logger.info("=" * 60)
+    except Exception as e:
+        logger.error(f"Failed to initialize Skin Analyzer: {e}", exc_info=True)
+        raise
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Log application shutdown."""
+    logger.info("=" * 60)
+    logger.info("Shutting down Skin Analyzer API")
+    logger.info("Application shutdown complete")
+    logger.info("=" * 60)
 
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
+    logger.info("Health check requested")
     return {
         "status": "healthy",
         "service": "skin-analyzer",
@@ -74,24 +168,36 @@ async def analyze_image(
     Returns:
         Complete analysis results
     """
+    logger.info(f"Received analyze request: filename={file.filename}, verbose={verbose}")
+    
     # Validate file type
     if not file.content_type.startswith("image/"):
+        logger.warning(f"Invalid file type: {file.content_type}")
         raise HTTPException(400, "File must be an image")
 
     # Read image
     contents = await file.read()
+    logger.debug(f"Read image file: {len(contents)} bytes")
     nparr = np.frombuffer(contents, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     if image is None:
+        logger.error("Could not decode image")
         raise HTTPException(400, "Could not decode image")
+
+    logger.info(f"Image decoded: {image.shape[1]}x{image.shape[0]} pixels")
 
     # Analyze
     skin_analyzer = get_analyzer()
+    logger.info("Starting skin analysis...")
     result = skin_analyzer.analyze(image)
 
     if not result["success"]:
-        raise HTTPException(422, result.get("error", "Analysis failed"))
+        error_msg = result.get("error", "Analysis failed")
+        logger.error(f"Analysis failed: {error_msg}")
+        raise HTTPException(422, error_msg)
+
+    logger.info(f"Analysis completed successfully: face_detected={result.get('has_face', False)}")
 
     # Simplify response if not verbose
     if not verbose:
@@ -123,7 +229,10 @@ async def check_image(file: UploadFile = File(...)):
     Returns:
         Suitability check results
     """
+    logger.info(f"Received check request: filename={file.filename}")
+    
     if not file.content_type.startswith("image/"):
+        logger.warning(f"Invalid file type: {file.content_type}")
         raise HTTPException(400, "File must be an image")
 
     contents = await file.read()
@@ -131,10 +240,14 @@ async def check_image(file: UploadFile = File(...)):
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     if image is None:
+        logger.error("Could not decode image")
         raise HTTPException(400, "Could not decode image")
 
     skin_analyzer = get_analyzer()
+    logger.info("Performing quick check...")
     result = skin_analyzer.quick_check(image)
+    
+    logger.info(f"Quick check completed: suitable={result.get('is_suitable_for_analysis', False)}")
 
     return result
 
@@ -154,11 +267,15 @@ async def analyze_region(
     Returns:
         Region-specific analysis results
     """
+    logger.info(f"Received region analysis request: filename={file.filename}, region={region}")
+    
     valid_regions = ["forehead", "left_cheek", "right_cheek", "nose", "chin"]
     if region not in valid_regions:
+        logger.warning(f"Invalid region requested: {region}")
         raise HTTPException(400, f"Invalid region. Must be one of: {valid_regions}")
 
     if not file.content_type.startswith("image/"):
+        logger.warning(f"Invalid file type: {file.content_type}")
         raise HTTPException(400, "File must be an image")
 
     contents = await file.read()
@@ -166,13 +283,19 @@ async def analyze_region(
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     if image is None:
+        logger.error("Could not decode image")
         raise HTTPException(400, "Could not decode image")
 
     skin_analyzer = get_analyzer()
+    logger.info(f"Starting region analysis for: {region}")
     result = skin_analyzer.analyze_region(image, region)
 
     if not result["success"]:
-        raise HTTPException(422, result.get("error", "Analysis failed"))
+        error_msg = result.get("error", "Analysis failed")
+        logger.error(f"Region analysis failed: {error_msg}")
+        raise HTTPException(422, error_msg)
+
+    logger.info(f"Region analysis completed successfully for: {region}")
 
     return JSONResponse(content=skin_analyzer._make_serializable(result))
 
@@ -180,6 +303,7 @@ async def analyze_region(
 @app.get("/info")
 async def get_info():
     """Get information about the analyzer capabilities."""
+    logger.info("Info endpoint requested")
     return {
         "service": "Skin Analyzer",
         "version": "0.1.0",
