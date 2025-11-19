@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import cv2
 import numpy as np
@@ -25,6 +26,15 @@ app = FastAPI(
     title="Skin Analyzer API",
     description="Facial skin attribute analysis service",
     version="0.1.0"
+)
+
+# Add CORS middleware to allow cross-origin requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins - configure specific origins in production
+    allow_credentials=False,  # Cannot be True when allow_origins=["*"]
+    allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allow all headers
 )
 
 # Initialize analyzer (singleton)
